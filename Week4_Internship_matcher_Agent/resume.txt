@@ -1,0 +1,8 @@
+SAMPLE RESUME - REPLACE THIS WITH YOUR OWN INFORMATION BEFORE RUNNING
+
+Education: Undergraduate computer science student
+Skills: Python, Git, HTML, CSS
+Projects:
+- Built a command-line quiz application using Python.
+- Used Git to track changes in class projects.
+Interests: Backend development and automation

@@ -28,4 +28,6 @@ jupyter
 # ipykernel
 # jupyter
 
-# pip install -U langchain-google-genai
+# pip install -U langchain-google-genailangchain-openai
+langchain-tavily
+certifi
