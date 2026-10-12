@@ -1,4 +1,11 @@
-from src.agents.agents import build_search_agent, build_reader_agent, writer_chain, critic_chain
+from pathlib import Path
+import sys
+
+# Allow running this file directly from the IDE or any working directory.
+if __name__ == "__main__" and not __package__:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from src.agents.agents import build_search_agent, build_reader_agent, summarizer_chain, writer_chain, citation_chain, critic_chain
 
 def run_research_pipeline(topic : str) -> dict:
 
@@ -28,7 +35,7 @@ def run_research_pipeline(topic : str) -> dict:
         "messages": [("user",
             f"Based on the following search results about '{topic}', "
             f"pick the most relevant URL and scrape it for deeper content.\n\n"
-            f"Search Results:\n{state['search_results'][:800]}"
+            f"Search Results:\n{state['search_results']}"
         )]
     })
 
@@ -37,15 +44,23 @@ def run_research_pipeline(topic : str) -> dict:
     print("\nscraped content: \n", state['scraped_content'])
 
 
-    #step 3 - writer chain 
+    # step 3 - summarizer chain
+    print("\nstep 3 - Summarizer is condensing scraped content ...")
+    state["summary"] = summarizer_chain.invoke({
+        "topic": topic,
+        "content": state["scraped_content"]
+    })
+    print("\nResearch summary\n", state["summary"])
+
+    #step 4 - writer chain 
 
     print("\n"+" ="*50)
-    print("step 3 - Writer is drafting the report ...")
+    print("step 4 - Writer is drafting the report ...")
     print("="*50)
 
     research_combined = (
         f"SEARCH RESULTS : \n {state['search_results']} \n\n"
-        f"DETAILED SCRAPED CONTENT : \n {state['scraped_content']}"
+        f"SUMMARIZED CONTENT : \n {state['summary']}"
     )
 
     state["report"] = writer_chain.invoke({
@@ -53,17 +68,31 @@ def run_research_pipeline(topic : str) -> dict:
         "research" : research_combined
     })
 
+    source_research = (
+        f"SEARCH RESULTS:\n{state['search_results']}\n\n"
+        f"SCRAPED CONTENT:\n{state['scraped_content']}"
+    )
+
+    # step 5 - citation agent
+    print("\nstep 5 - Citation Agent is formatting references ...")
+    state["citations"] = citation_chain.invoke({
+        "research": source_research,
+        "report": state["report"]
+    })
+    state["report"] += "\n\n" + state["citations"]
+
     print("\n Final Report\n",state['report'])
 
 
     #critic report 
 
     print("\n"+" ="*50)
-    print("step 4 - critic is reviewing the report ")
+    print("step 6 - critic is reviewing the report ")
     print("="*50)
 
     state["feedback"] = critic_chain.invoke({
-        "report":state['report']
+        "report":state['report'],
+        "research": source_research
     })
 
     print("\n critic report \n", state['feedback'])

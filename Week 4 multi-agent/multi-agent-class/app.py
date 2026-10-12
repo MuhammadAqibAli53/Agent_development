@@ -3,7 +3,7 @@
 # stop streamlit by pressing ctrl+C
 import streamlit as st
 import time
-from src.agents.agents import build_search_agent, build_reader_agent, writer_chain, critic_chain
+from src.agents.agents import build_search_agent, build_reader_agent, summarizer_chain, writer_chain, citation_chain, critic_chain
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -345,8 +345,8 @@ st.markdown("""
     <div class="hero-eyebrow">Multi-Agent AI System</div>
     <h1>Researcher<span>Agent</span></h1>
     <p class="hero-sub">
-        Four specialized AI agents collaborate — searching, scraping, writing,
-        and critiquing — to deliver a polished research report on any topic.
+        Six specialized AI agents collaborate — searching, scraping, summarizing, writing,
+        formatting citations, and critiquing — to deliver a polished research report on any topic.
     </p>
 </div>
 
@@ -422,7 +422,7 @@ with col_pipeline:
         if not r:
             return "waiting"
 
-        steps = ["search", "reader", "writer", "critic"]
+        steps = ["search", "reader", "summary", "writer", "citations", "critic"]
 
         if step in r:
             return "done"
@@ -438,7 +438,7 @@ with col_pipeline:
         "01",
         "Search Agent",
         s("search"),
-        "Gathers recent web information"
+        "Chooses Tavily or DuckDuckGo"
     )
 
     step_card(
@@ -450,16 +450,30 @@ with col_pipeline:
 
     step_card(
         "03",
+        "Summarizer Chain",
+        s("summary"),
+        "Condenses scraped content before writing"
+    )
+
+    step_card(
+        "04",
         "Writer Chain",
         s("writer"),
         "Drafts the full research report"
     )
 
     step_card(
-        "04",
+        "05",
+        "Citation Agent",
+        s("citations"),
+        "Extracts & formats source references"
+    )
+
+    step_card(
+        "06",
         "Critic Chain",
         s("critic"),
-        "Reviews & scores the report"
+        "Scores accuracy, completeness, clarity & organization"
     )
 
 
@@ -506,19 +520,27 @@ if st.session_state.running and not st.session_state.done:
                 "user",
                 f"Based on the following search results about '{topic_val}', "
                 f"pick the most relevant URL and scrape it for deeper content.\n\n"
-                f"Search Results:\n{results['search'][:800]}"
+                f"Search Results:\n{results['search']}"
             )]
         })
 
         results["reader"] = rr["messages"][-1].content
         st.session_state.results = dict(results)
 
-    # ── Step 3: Writer ──
+    # Step 3: Summarizer
+    with st.spinner("Summarizer is condensing scraped content..."):
+        results["summary"] = summarizer_chain.invoke({
+            "topic": topic_val,
+            "content": results["reader"]
+        })
+        st.session_state.results = dict(results)
+
+    # ── Step 4: Writer ──
     with st.spinner("✍️ Writer is drafting the report…"):
 
         research_combined = (
             f"SEARCH RESULTS:\n{results['search']}\n\n"
-            f"DETAILED SCRAPED CONTENT:\n{results['reader']}"
+            f"SUMMARIZED CONTENT:\n{results['summary']}"
         )
 
         results["writer"] = writer_chain.invoke({
@@ -528,11 +550,25 @@ if st.session_state.running and not st.session_state.done:
 
         st.session_state.results = dict(results)
 
-    # ── Step 4: Critic ──
+    # Step 5: Citation Agent
+    source_research = (
+        f"SEARCH RESULTS:\n{results['search']}\n\n"
+        f"SCRAPED CONTENT:\n{results['reader']}"
+    )
+    with st.spinner("Citation Agent is formatting references..."):
+        results["citations"] = citation_chain.invoke({
+            "research": source_research,
+            "report": results["writer"]
+        })
+        results["writer"] += "\n\n" + results["citations"]
+        st.session_state.results = dict(results)
+
+    # ── Step 6: Critic ──
     with st.spinner("🧐 Critic is reviewing the report…"):
 
         results["critic"] = critic_chain.invoke({
-            "report": results["writer"]
+            "report": results["writer"],
+            "research": source_research
         })
 
         st.session_state.results = dict(results)
@@ -591,6 +627,10 @@ if r:
                 ''',
                 unsafe_allow_html=True
             )
+
+    if "summary" in r:
+        with st.expander("Research Summary", expanded=False):
+            st.markdown(r["summary"])
 
     # Final report
     if "writer" in r:

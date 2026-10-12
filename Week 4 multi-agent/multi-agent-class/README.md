@@ -28,3 +28,38 @@ add api keys i used Groq https://console.groq.com/keys and tavily
 Now write tools code and check it... 
 
 now write agents code
+
+## Research workflow
+Search Agent (Tavily / DuckDuckGo) -> Reader Agent -> Summarizer Chain -> Writer Chain -> Citation Agent -> Critic Chain.
+
+The Citation Agent uses `citation_chain` in `src/agents/agents.py` to extract
+references from the research sources cited in the report. It removes duplicate
+URLs and formats a numbered References section without inventing missing metadata.
+Both `main.py` and the Streamlit app run this step before the critic. References
+are included in the final report and its Markdown download.
+
+The Search Agent chooses between `web_search` (Tavily) and `duckduckgo_search`
+(DuckDuckGo through the `ddgs` package). Tavily needs `TAVILY_API_KEY`;
+DuckDuckGo does not need an API key. If one provider fails, the agent can try
+the other. Neither provider is guaranteed to return results.
+
+The Summarizer Chain condenses the Reader's scraped content before the Writer,
+preserving source URLs, key facts, and limitations. The app also displays this
+summary in an expandable panel. Original research is retained for citations
+and review.
+
+The Critic gives separate scores out of 10 for **accuracy**, **completeness**,
+**clarity**, and **organization**, with a justification for each, strengths,
+improvements, and a verdict. Accuracy is assessed against the supplied research.
+
+## Run the completed assignment
+From this project directory, install the updated dependencies and launch:
+
+```bash
+pip install -r requirements.txt
+python main.py
+python -m streamlit run app.py
+```
+
+Configure `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) for the Gemini model and
+`TAVILY_API_KEY` for Tavily in your local `.env` file.
