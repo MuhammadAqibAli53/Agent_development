@@ -1,25 +1,50 @@
 # AI Agent Development
+### Tool-using agents · Multi-agent orchestration · Applied GenAI
 
-A collection of educational Python projects exploring AI agents, tool calling, search, resume analysis, and multi-agent collaboration.
+A collection of Python projects that investigate how language-model agents reason over tasks, call external tools, retrieve information, and return structured, actionable outputs.
 
-## Projects
-- **`Simple_langchain_agent/`** — Streamlit internship assistant with resume review, web search, and skill matching
-- **`Week4_Internship_matcher_Agent/`** — resume-informed internship discovery and qualification comparisons
-- **`Week 4 multi-agent/`** — multi-agent coursework and academic workflows
+**Skills demonstrated:** Python · LangChain/LangGraph · LLM Orchestration · Tool Calling · Multi-Agent Design · Streamlit · Search Integration
 
-Each folder is a distinct project and may have its own README, dependencies, and model configuration.
+## Featured engineering work
+
+### 1. Internship Matching Agent
+A Streamlit application that reads user-provided resume text, researches matching internship opportunities, and compares documented skills with job requirements.
+
+- **Tools:** resume reader, online search, and deterministic skill matcher.
+- **Skills shown:** agent tool design, typed outputs, external API integration, transparent scoring, and UI state management.
+- **Design detail:** Required-skill overlap is calculated in Python; it is **not** presented as a hiring probability.
+- **Implementations:** `Simple_langchain_agent/` and `Week4_Internship_matcher_Agent/`.
+
+### 2. Multi-Agent Research System
+A research workflow with complementary responsibilities:
+```text
+Topic -> Search -> Reader -> Summarizer -> Writer -> Citation -> Critic
+```
+- Combines online research and text processing into a report-generation pipeline.
+- Includes citation deduplication and a critic with separate accuracy, completeness, clarity, and organization assessments.
+- Uses Tavily and optional DuckDuckGo search paths as documented in the subproject.
+- See `Week 4 multi-agent/multi-agent-class/`.
+
+### 3. Multi-Agent Coursework
+Additional applications and experiments under `Week 4 multi-agent/` explore multiple specialist roles and their coordination.
+
+## Design principles practiced
+| Engineering concern | Approach |
+|---|---|
+| External information | Tool-based web search rather than relying only on model memory |
+| Deterministic calculations | Python skill comparison instead of LLM-invented percentages |
+| Composable workflows | Separate responsibilities across agents/chains |
+| User experience | Streamlit interfaces around the agent pipelines |
+| API secrets | Environment variables instead of hard-coded credentials |
+| Source quality | Citation handling and critique stages in the research project |
 
 ## Technologies
-Python, LangChain/LangGraph, Streamlit, OpenAI and Google Gemini integrations, and Tavily.
+Python, LangChain, LangGraph, Streamlit, OpenAI/Gemini model integrations, Tavily, Groq (depending on subproject).
 
-## Getting started
-1. Clone the repository and open a chosen subproject.
-2. Create and activate a Python virtual environment.
-3. Install that subproject's declared dependencies.
-4. Configure required environment variables (such as `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `TAVILY_API_KEY`) without committing secrets.
-5. For a Streamlit app, run `streamlit run app.py` from the appropriate directory.
+## How to explore
+Each subdirectory is an **independent assignment or application** with its own dependencies and setup. Open the relevant folder and follow its README. Some applications require provider API keys, including `OPENAI_API_KEY`, `GEMINI_API_KEY`, and `TAVILY_API_KEY`.
 
-A skill-match percentage measures overlap with explicit required skills; it is not a hiring probability.
+## Scope
+These are educational implementations and prototypes; live service availability, accuracy, and production-readiness have not been independently certified.
 
-## Maintainer
-[Muhammad Aqib Ali](https://github.com/MuhammadAqibAli53)
+**Maintained by [Muhammad Aqib Ali](https://github.com/MuhammadAqibAli53).**
