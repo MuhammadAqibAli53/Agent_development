@@ -1,0 +1,5 @@
+langgraph>=0.3,<2
+langchain-google-genai>=2,<5
+python-dotenv>=1,<2
+ipykernel>=6,<8
+ipython>=8,<11
